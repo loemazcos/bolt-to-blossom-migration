@@ -212,31 +212,75 @@ async function isWithinLimits(supabase: Db, deviceId: string) {
     (await consumeRateLimit(supabase, "global", dayStart, globalCap));
 }
 
-async function requestClaudeReply(history: Turn[], system: string): Promise<unknown | null> {
-  const apiKey = process.env["ANTHROPIC_API_KEY"];
-  if (!apiKey) return null;
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
+const GEMINI_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    messages: {
+      type: "ARRAY",
+      minItems: 1,
+      maxItems: 3,
+      items: {
+        type: "OBJECT",
+        properties: {
+          text: { type: "STRING" },
+          delay_min: { type: "INTEGER" },
+          unsend_after_min: { type: "INTEGER", nullable: true },
+          typing_cycles: { type: "INTEGER" },
+        },
+        required: ["text", "delay_min", "unsend_after_min", "typing_cycles"],
+      },
     },
-    body: JSON.stringify({
-      model: process.env["ANTHROPIC_MODEL"] ?? "claude-haiku-5-5",
-      max_tokens: 600,
-      system,
-      messages: toAnthropicMessages(history),
-      tools: [REPLY_TOOL],
-      tool_choice: { type: "tool", name: "reply" },
-    }),
-  });
-  if (!response.ok) return null;
+    effects: {
+      type: "OBJECT",
+      properties: { trust: { type: "INTEGER" }, courage: { type: "INTEGER" }, rumor: { type: "INTEGER" } },
+      required: ["trust", "courage", "rumor"],
+    },
+    reveal: { type: "ARRAY", items: { type: "STRING" } },
+    read_now: { type: "BOOLEAN" },
+    mood: { type: "STRING", enum: ["shy", "calm", "tease", "cold", "warm"] },
+  },
+  required: ["messages", "effects", "reveal", "read_now", "mood"],
+};
+
+// Character replies come from Google Gemini (user's own key), validated by parseReply.
+async function requestClaudeReply(history: Turn[], system: string): Promise<unknown | null> {
+  const apiKey = process.env["GEMINI_API_KEY"];
+  if (!apiKey) return null;
+  const model = process.env["GEMINI_MODEL"] ?? "gemini-3.5-flash";
+  const contents = toAnthropicMessages(history).map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+  if (!contents.length) return null;
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: "POST",
+      headers: { "x-goog-api-key": apiKey, "content-type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: `${system}\n\n${REPLY_TOOL.description}\ndelay_min 0-180, unsend_after_min 1-30 또는 null, typing_cycles 0-3, text 120자 이내.` }] },
+        contents,
+        generationConfig: {
+          maxOutputTokens: 800,
+          temperature: 0.9,
+          responseMimeType: "application/json",
+          responseSchema: GEMINI_SCHEMA,
+        },
+      }),
+    },
+  );
+  if (!response.ok) {
+    console.error("gemini error", response.status, (await response.text()).slice(0, 300));
+    return null;
+  }
   const data = await response.json();
-  const block = Array.isArray(data?.content)
-    ? data.content.find((item: { type?: string; name?: string }) => item.type === "tool_use" && item.name === "reply")
-    : undefined;
-  return block?.input ?? null;
+  const text = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("");
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 async function insertThemMessages(
