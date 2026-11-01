@@ -60,17 +60,14 @@ export default function AppSwitcher({ apps, onResume, onClose }: Props) {
       ) : (
         <div
           className="relative h-[460px] w-full"
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
         >
           {apps.map((app, position) => (
             <button
               key={app.id}
               type="button"
               onClick={(event) => {
-                if (!draggedRef.current) onResume(app, event.currentTarget.getBoundingClientRect());
+                if (position !== current) setIndex(position);
+                else onResume(app, event.currentTarget.getBoundingClientRect());
               }}
               className="absolute top-0 flex h-[460px] flex-col overflow-hidden rounded-[22px] bg-[var(--card)] text-left shadow-[0_12px_40px_rgba(0,0,0,0.25)]"
               style={{
@@ -94,7 +91,7 @@ export default function AppSwitcher({ apps, onResume, onClose }: Props) {
           ))}
         </div>
       )}
-      <p className="mt-4 text-center text-[13px] text-white/80">좌우로 밀어 고르고, 화면을 위로 밀면 닫혀요</p>
+      <p className="mt-4 text-center text-[13px] text-white/80">옆 카드를 눌러 고르고, 빈 곳을 누르면 닫혀요</p>
     </div>
   );
 }

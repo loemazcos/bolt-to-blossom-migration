@@ -22,13 +22,14 @@ export default function NotificationCenter({ progress, dragging, now, onClose, o
     <div className={`absolute inset-0 z-40 ${hidden ? 'invisible' : ''}`}>
       <div className="absolute inset-0 bg-black/30" style={{ opacity: progress }} onClick={onClose} />
       <section
-        className="absolute inset-x-0 top-0 flex h-[86%] flex-col rounded-b-[28px] bg-[var(--glass)] px-4 pb-6 pt-[calc(env(safe-area-inset-top)+12px)] shadow-[0_12px_40px_rgba(0,0,0,0.2)] backdrop-blur-[24px] backdrop-saturate-[180%]"
+        className="absolute inset-x-0 bottom-0 flex h-[86%] flex-col rounded-t-[28px] bg-[var(--glass)] px-4 pb-8 pt-3 shadow-[0_-12px_40px_rgba(0,0,0,0.2)] backdrop-blur-[24px] backdrop-saturate-[180%]"
         style={{
-          transform: `translate3d(0, ${(progress - 1) * 100}%, 0)`,
+          transform: `translate3d(0, ${(1 - progress) * 100}%, 0)`,
           transition: dragging ? 'none' : 'transform 450ms var(--spring)',
         }}
       >
-        <div className="flex items-end justify-between px-1 pt-6">
+        <span className="mx-auto mb-2 h-1 w-9 rounded-full bg-[var(--fg-2)]" />
+        <div className="flex items-end justify-between px-1 pt-2">
           <div>
             <p className="text-[13px] text-[var(--fg-2)]">{formatLockDate(now)}</p>
             <p className="text-[28px] font-bold tabular-nums">{formatClock(now)}</p>
@@ -64,7 +65,7 @@ export default function NotificationCenter({ progress, dragging, now, onClose, o
             ))
           )}
         </ul>
-        <span className="mx-auto mt-3 h-1 w-9 rounded-full bg-[var(--fg-2)]" />
+        <button type="button" onClick={onClose} className="mx-auto mt-3 h-9 rounded-full px-5 text-[14px] font-semibold text-[var(--accent)]">닫기</button>
       </section>
     </div>
   );
