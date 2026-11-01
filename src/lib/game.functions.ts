@@ -17,6 +17,6 @@ export const callGame = createServerFn({ method: "POST" })
         ? await import("@/server/gameApi.server")
         : await import("@/server/dmReply.server");
     const result = await mod.handle(data.body);
-    // Plain JSON round-trip keeps the response serializable.
-    return JSON.parse(JSON.stringify(result)) as { status: number; body: unknown };
+    // Body is sent as a JSON string so any shape stays serializable.
+    return { status: result.status, json: JSON.stringify(result.body ?? null) };
   });
