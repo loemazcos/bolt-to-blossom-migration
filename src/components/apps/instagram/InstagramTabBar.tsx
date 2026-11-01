@@ -17,7 +17,7 @@ type Props = {
 
 export default function InstagramTabBar({ active, onChange }: Props) {
   return (
-    <nav className="flex items-stretch border-t border-[var(--line)] bg-[var(--bg,#fff)] pb-[env(safe-area-inset-bottom)]">
+    <nav className="flex items-stretch border-t border-[var(--line)] bg-[var(--bg,#fff)] pb-[calc(env(safe-area-inset-bottom)+22px)]">
       {TABS.map(({ id, label, Icon }) => {
         const selected = active === id;
         return (
@@ -27,11 +27,11 @@ export default function InstagramTabBar({ active, onChange }: Props) {
             onClick={() => onChange(id)}
             aria-label={label}
             aria-current={selected ? 'page' : undefined}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 transition-colors ${
+            className={`flex flex-1 flex-col items-center gap-0.5 py-3 transition-colors ${
               selected ? 'text-[var(--fg)]' : 'text-[var(--fg-2)]'
             }`}
           >
-            <Icon size={24} strokeWidth={selected ? 2.4 : 1.8} aria-hidden="true" />
+            <Icon size={27} strokeWidth={selected ? 2.4 : 1.8} aria-hidden="true" />
           </button>
         );
       })}
