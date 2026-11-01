@@ -41,7 +41,7 @@ export default function ClueBookApp() {
               >
                 {discovered ? (
                   <>
-                    <span className="text-[11px] font-semibold text-[var(--fg-2)]">{clue.id}</span>
+                    <span className="text-[11px] font-semibold text-[var(--fg-2)]">{clue.id.replace(/^C0?/, "No.")}</span>
                     <span className="px-1 text-center text-[11px] leading-[1.3]">{clue.title}</span>
                   </>
                 ) : (
@@ -63,7 +63,7 @@ function ClueDetail({ clue, onBack }: { clue: Clue; onBack(): void }) {
         <button type="button" onClick={onBack} aria-label="도감으로" className="p-1 text-[var(--accent)]">
           <ChevronLeft size={26} strokeWidth={2} aria-hidden="true" />
         </button>
-        <p className="flex-1 text-center text-[15px] font-semibold">단서 {clue.id}</p>
+        <p className="flex-1 text-center text-[15px] font-semibold">단서 {clue.id.replace(/^C0?/, "No.")}</p>
         <span className="w-8" aria-hidden="true" />
       </header>
       <article className="flex flex-1 flex-col gap-3 overflow-y-auto px-5 pb-8">
