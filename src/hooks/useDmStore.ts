@@ -14,8 +14,8 @@ import {
 type Status = 'loading' | 'ready' | 'error';
 type SendHandlers = { onSent: () => void; onReply: (reply: DmReply) => void };
 
-const TYPING_MS = 2500;
-const TYPING_GAP_MS = 4000;
+const TYPING_MS = 1500;
+const TYPING_GAP_MS = 1200;
 
 const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
@@ -67,19 +67,35 @@ export function useDmStore(now: number) {
     if (status !== 'ready' || pendingId) return;
     setPendingId(thread.id);
     setNotice(null);
+    // Show the player's message right away; the server copy replaces it on refresh.
+    const optimistic = {
+      id: -Date.now(),
+      thread_id: thread.id,
+      sender: 'me',
+      body: text,
+      status: 'sent',
+      deliver_at: now,
+      read_at: null,
+      unsend_after_min: null,
+      unsent_at: null,
+      typing_cycles: 0,
+      created_at: new Date().toISOString(),
+    } as unknown as DmRow;
+    setRows((current) => [...current, optimistic]);
 
     try {
       await saveMyDmMessage(thread.id, text);
     } catch {
       setNotice({ threadId: thread.id, text: '메시지를 보내지 못했어요. 연결을 확인해 주세요.' });
+      setRows((current) => current.filter((row) => row !== optimistic));
       setPendingId(null);
       return;
     }
     handlers.onSent();
-    await refresh();
+    void refresh();
 
     try {
-      const history = [...messagesFor(thread), { from: 'me' as const, text }]
+      const history = [...thread.messages, ...rowsFor(thread.id).map((row) => rowToMessage(row, thread.name)), { from: 'me' as const, text }]
         .filter((message) => message.from !== 'system')
         .slice(-30)
         .map((message) => ({ from: message.from as 'me' | 'them', text: message.text }));
