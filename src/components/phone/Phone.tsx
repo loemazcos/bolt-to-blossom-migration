@@ -98,7 +98,7 @@ export default function Phone() {
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetKind | null>(null);
-  const [drag, setDrag] = useState<Drag | null>(null);
+  const [drag] = useState<Drag | null>(null);
   const [sleepOpen, setSleepOpen] = useState(false);
   const [seenDay, setSeenDay] = useState(run.day);
   const [cutDay, setCutDay] = useState<number | null>(null);
@@ -223,85 +223,21 @@ export default function Phone() {
     return isOpen ? 1 : 0;
   }
 
-  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+  function handlePointerDown() {
     unlockAudio();
-    if (locked) return;
-    const screen = screenRef.current?.getBoundingClientRect();
-    if (!screen) return;
-    const y = event.clientY - screen.top;
-    const x = event.clientX - screen.left;
-    let zone: Gesture['zone'] | null = null;
-    if (sheet) zone = 'sheet';
-    else if (y < 32) zone = 'top';
-    else if (y > screen.height - 28) zone = 'bottom';
-    else if (!openState && !switcherOpen) zone = 'mid';
-    if (!zone) {
-      gesture.current = null;
-      return;
-    }
-    gesture.current = {
-      x: event.clientX,
-      y: event.clientY,
-      zone,
-      side: x < screen.width / 2 ? 'nc' : 'cc',
-      kind: null,
-    };
   }
 
-  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
-    const current = gesture.current;
-    if (!current) return;
-    const dx = event.clientX - current.x;
-    const dy = event.clientY - current.y;
-    if (!current.kind) {
-      if (Math.hypot(dx, dy) < ACTIVATE_PX) return;
-      if (Math.abs(dx) > Math.abs(dy)) {
-        gesture.current = null;
-        return;
-      }
-      current.kind = resolveKind(current.zone, dy, current.side);
-      if (!current.kind) {
-        gesture.current = null;
-        return;
-      }
-    }
-    const reversed = current.kind === 'home' || current.kind === 'close';
-    setDrag({ kind: current.kind, p: Math.max(0, reversed ? -dy : dy) });
+  // Tap-only navigation (no swipes): status bar left = notifications,
+  // right = control center, home bar = home / app switcher.
+  function toggleSheet(kind: SheetKind) {
+    setSheet((current) => (current === kind ? null : kind));
   }
 
-  function handlePointerUp() {
-    const current = gesture.current;
-    gesture.current = null;
-    const finished = drag;
-    setDrag(null);
-    if (!current?.kind || !finished) return;
-    const travel = screenRef.current?.clientHeight || DEFAULT_TRAVEL_PX;
-    const p = finished.p;
-
-    switch (finished.kind) {
-      case 'nc':
-      case 'cc':
-      case 'spot':
-        if (p > SWIPE_COMMIT_PX) setSheet(finished.kind);
-        break;
-      case 'close':
-        if (p > SWIPE_COMMIT_PX) setSheet(null);
-        break;
-      case 'home':
-        if (openState) {
-          if (p > travel * 0.45) {
-            setSwitcherOpen(true);
-            closeApp();
-          } else if (p > SWIPE_SHORT_PX) {
-            closeApp();
-          }
-        } else if (switcherOpen) {
-          if (p > SWIPE_SHORT_PX) setSwitcherOpen(false);
-        } else if (p > travel * 0.45) {
-          setSwitcherOpen(true);
-        }
-        break;
-    }
+  function pressHome() {
+    if (sheet) setSheet(null);
+    else if (openState) closeApp();
+    else if (switcherOpen) setSwitcherOpen(false);
+    else setSwitcherOpen(true);
   }
 
   return (
@@ -312,9 +248,6 @@ export default function Phone() {
         className={shaking ? 'phone-screen phone-shake' : 'phone-screen'}
         data-theme={dark ? 'dark' : 'light'}
         onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
       >
         <Wallpaper dim={dark} />
         {locked ? null : (
@@ -326,6 +259,7 @@ export default function Phone() {
             onStartEditing={() => setEditing(true)}
             onStopEditing={() => setEditing(false)}
             onOpenApp={openApp}
+            onOpenSearch={() => setSheet('spot')}
           />
         )}
 
@@ -474,7 +408,28 @@ export default function Phone() {
         <StatusBar now={now} />
 
         {locked ? null : (
-          <span className="pointer-events-none absolute bottom-2 left-1/2 z-[60] h-[5px] w-[134px] -translate-x-1/2 rounded-full bg-[var(--fg)]" />
+          <>
+            <button
+              type="button"
+              aria-label="알림 센터"
+              onClick={() => toggleSheet('nc')}
+              className="absolute left-0 top-0 z-[61] h-[52px] w-[40%]"
+            />
+            <button
+              type="button"
+              aria-label="제어 센터"
+              onClick={() => toggleSheet('cc')}
+              className="absolute right-0 top-0 z-[61] h-[52px] w-[40%]"
+            />
+            <button
+              type="button"
+              aria-label={openState ? '홈으로' : '최근 앱'}
+              onClick={pressHome}
+              className="group absolute bottom-0 left-1/2 z-[61] flex h-[30px] w-[200px] -translate-x-1/2 items-end justify-center pb-2"
+            >
+              <span className="h-[5px] w-[134px] rounded-full bg-[var(--fg)] transition-transform group-active:scale-x-90" />
+            </button>
+          </>
         )}
       </div>
     </div>
