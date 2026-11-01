@@ -167,7 +167,7 @@ export default function SanghyukChat({ thread, onBack }: Props) {
 
         {showEnding && (
           <section className="mt-3 rounded-[20px] bg-white p-4 text-[#111827] shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
-            <p className="text-[11px] font-semibold tracking-wide text-[#4B5563]">{sanghyukEnding.codex} · {sanghyukEnding.codexNote}</p>
+            <p className="text-[11px] font-semibold tracking-wide text-[#4B5563]">{sanghyukEnding.codexNote}</p>
             <p className="mt-1 text-[16px] font-bold">{sanghyukEnding.title}</p>
             <p className="mt-2 text-[13px] leading-[1.6] text-[#374151]">{sanghyukEnding.closing}</p>
           </section>
