@@ -1,22 +1,11 @@
 import { getDeviceId } from '@/lib/device';
+import { callGame } from '@/lib/game.functions';
 
-const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
-const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export async function callFunction<T>(name: string, body: Record<string, unknown>): Promise<T> {
-  const response = await fetch(`${FUNCTIONS_URL}/${name}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${ANON_KEY}`,
-      apikey: ANON_KEY,
-    },
-    body: JSON.stringify({ deviceId: getDeviceId(), ...body }),
-  });
-  const data: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    const message = (data as { error?: unknown } | null)?.error;
+export async function callFunction<T>(name: 'game-api' | 'dm-reply', body: Record<string, unknown>): Promise<T> {
+  const result = await callGame({ data: { name, body: { deviceId: getDeviceId(), ...body } } });
+  if (result.status >= 400) {
+    const message = (result.body as { error?: unknown } | null)?.error;
     throw new Error(typeof message === 'string' ? message : '요청을 처리하지 못했어요.');
   }
-  return data as T;
+  return result.body as T;
 }
