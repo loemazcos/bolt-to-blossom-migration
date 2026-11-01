@@ -14,7 +14,7 @@ export const device = {
   lockoutSeconds: 60,
   dday: { label: 'D-8', title: '비공개 일정' },
   steps: 3412,
-  badges: { insta: 1, kakao: 8, remit: 1 },
+  badges: { insta: 1, kakao: 4, remit: 1 },
   lockNotifications: [
     { id: 'n1', app: 'remit', title: '송금', time: '21:41', body: '상혁님이 1원을 보냈어요 · 2시간 13분 후 만료' },
     { id: 'n2', app: 'kakao', title: '동현', time: '20:15', body: '근데 형 생일 D-8인데 뭐 줌ㅋㅋ' },
