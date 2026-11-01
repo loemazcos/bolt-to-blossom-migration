@@ -7,7 +7,7 @@ type Props = { now: Date };
 
 export default function StatusBar({ now }: Props) {
   const { run } = useGameState();
-  const low = run.battery <= LOW_POWER_LINE;
+  const low = run.lowPower || run.battery <= LOW_POWER_LINE;
   const BatteryIcon = low ? BatteryLow : BatteryFull;
   return (
     <header className="pointer-events-none absolute inset-x-0 top-0 z-[60] flex h-[60px] items-start justify-between pl-8 pr-4 pt-[calc(env(safe-area-inset-top)+14px)] text-[var(--fg)]">

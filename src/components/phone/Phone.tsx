@@ -45,6 +45,8 @@ import {
   advanceRun,
   openApp as runOpenApp,
   setDnd,
+  setLowPower,
+  markAppSeen,
 } from '@/state/runState';
 import {
   LOW_BATTERY_LINE,
@@ -154,7 +156,7 @@ export default function Phone() {
   const canSleep = minutesIntoDay(run) >= SLEEP_FROM && !run.booted;
   const remitMinutes = remainingMinutes(run.t);
   const remitPulsing = run.remitStatus === 'open' && remitMinutes < 30;
-  const dimmed = !run.charging && run.battery <= LOW_POWER_LINE;
+  const dimmed = run.lowPower || (!run.charging && run.battery <= LOW_POWER_LINE);
   const lowBattery = !run.charging && run.battery <= LOW_BATTERY_LINE;
   const sleepQuestion = questions[run.day as keyof typeof questions] ?? defaultQuestion;
   const heartbeatOn = run.remitStatus === 'open' && remitMinutes < 10;
@@ -199,7 +201,7 @@ export default function Phone() {
   }
 
   function openApp(app: AppConfig, target: DOMRect) {
-    update(runOpenApp);
+    update((current) => markAppSeen(runOpenApp(current), app.id));
     setEditing(false);
     setSwitcherOpen(false);
     setOpenState({ app, origin: toScreenRect(target), closing: false });
@@ -295,6 +297,8 @@ export default function Phone() {
           dnd={run.dnd}
           onToggleDnd={() => update((current) => setDnd(current, !current.dnd))}
           onCapture={() => takeCapture(currentScreenSource())}
+          lowPower={run.lowPower}
+          onToggleLowPower={() => update((current) => setLowPower(current, !current.lowPower))}
         />
         <Spotlight
           progress={progressOf('spot')}
