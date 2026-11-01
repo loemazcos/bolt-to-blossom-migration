@@ -97,6 +97,8 @@ export default function Phone() {
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState(false);
   const [openState, setOpenState] = useState<OpenState | null>(null);
+  const openStateRef = useRef<OpenState | null>(null);
+  openStateRef.current = openState;
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetKind | null>(null);
@@ -114,6 +116,8 @@ export default function Phone() {
   useEffect(() => {
     if (!latestNotice || latestNotice.id === seenNotice.current) return;
     seenNotice.current = latestNotice.id;
+    // No banner for the app the player is already looking at.
+    if (openStateRef.current?.app.id === latestNotice.appId) return;
     setBanner(latestNotice);
     playSound('message', audible);
   }, [latestNotice, audible]);
