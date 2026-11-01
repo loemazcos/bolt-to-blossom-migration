@@ -1,0 +1,21 @@
+# Roadmap
+
+- [ ] Gemini key stored; character replies use Gemini
+- [ ] Name-based save (name = save slot, resume by name, names unique)
+- [ ] Map app opens (and every app on the home screen has real content)
+- [ ] Notification Center slides up from bottom
+- [ ] Toss (remit) background white
+- [ ] Calculator icon: no white margin
+- [ ] Kakao badge stuck at 8 — fix
+- [ ] Status bar icons (wifi/cell/battery) shift right
+- [ ] Replace swipe/drag with tap-to-advance everywhere (like lock screen)
+- [ ] App icon badges: static (no blinking), stack, clear when read
+- [ ] Instagram bottom 5 tabs: slightly larger, not clipped
+- [ ] Faster message sending
+- [ ] No notification for a person while their chat is open
+- [ ] Sanghyuk first conversation script (with Taesan's lines)
+- [ ] Hide internal codes (A-0 etc.) from players
+- [ ] Low Power Mode works
+- [ ] Instagram Explore grid uses the 12 provided photos
+- [ ] "단서 획득 쏘머니" text fix
+- [ ] Check clues and puzzles work
