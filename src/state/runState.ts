@@ -95,6 +95,9 @@ export type RunState = {
   droppedAt: number | null;
   droppedCall: string | null;
   captures: Capture[];
+  lowPower: boolean;
+  appSeen: Record<string, number>;
+  playerName: string | null;
 };
 
 export const DEFAULT_RUN: RunState = {
@@ -137,6 +140,9 @@ export const DEFAULT_RUN: RunState = {
   droppedAt: null,
   droppedCall: null,
   captures: [],
+  lowPower: false,
+  appSeen: {},
+  playerName: null,
 };
 
 const round1 = (value: number) => Math.round(value * 10) / 10;
@@ -236,7 +242,7 @@ function wakeUp(run: RunState, extraMinutes: number, shutdownNow: boolean): RunS
 export function advanceRun(run: RunState, minutes: number, batteryCost: number): RunState {
   const target = run.t + minutes;
   const wakeAt = run.nextWakeT;
-  const charged: RunState = { ...run, battery: round1(run.battery - batteryCost) };
+  const charged: RunState = { ...run, battery: round1(run.battery - (run.lowPower || run.battery <= LOW_POWER_LINE ? batteryCost * 0.6 : batteryCost)) };
   const withEvents = applyCrossings(charged, crossingsBetween(run, run.t, Math.min(target, wakeAt)));
   if (withEvents.battery <= 0) return wakeUp({ ...withEvents, t: wakeAt }, 0, true);
   if (target >= wakeAt) return wakeUp({ ...withEvents, t: wakeAt }, target - wakeAt, false);
@@ -463,4 +469,12 @@ export function applyDmEffects(run: RunState, delta: { trust: number; courage: n
     courage: clampStat(run.courage + delta.courage),
     rumor: clampStat(run.rumor + delta.rumor),
   };
+}
+
+export function setLowPower(run: RunState, lowPower: boolean): RunState {
+  return { ...run, lowPower };
+}
+
+export function markAppSeen(run: RunState, appId: string): RunState {
+  return { ...run, appSeen: { ...run.appSeen, [appId]: run.t } };
 }

@@ -11,8 +11,8 @@ export const sanghyukChoices = [
 
 export const sanghyukEnding = {
   codex: 'A-0',
-  title: 'A-0 직진',
-  codexNote: '도감 1/10 열림',
+  title: '직진',
+  codexNote: '엔딩 도감 1/10 열림',
   lines: [
     { from: 'me', text: '네? 왜요ㅋㅋ' },
     { from: 'them', text: '…읽었네.' },

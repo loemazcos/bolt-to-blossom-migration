@@ -23,11 +23,6 @@ export default function LockScreen({ now, onUnlock }: Props) {
   return (
     <div
       className="absolute inset-0 z-50 flex flex-col"
-      onPointerDown={(event) => setSwipeStartY(event.clientY)}
-      onPointerUp={(event) => {
-        if (!padOpen) finishSwipe(event.clientY);
-      }}
-      onPointerCancel={() => setSwipeStartY(null)}
     >
       <div className={`pt-[calc(env(safe-area-inset-top)+64px)] text-center ${padOpen ? 'hidden' : ''}`}>
         <p className="text-[17px] font-medium">{formatLockDate(now)}</p>
@@ -87,7 +82,7 @@ export default function LockScreen({ now, onUnlock }: Props) {
               </button>
             </div>
             <button type="button" onClick={() => setPadOpen(true)} className="h-11 text-[14px] text-[var(--fg)]">
-              위로 밀어서 잠금 해제
+              눌러서 잠금 해제
             </button>
           </>
         )}

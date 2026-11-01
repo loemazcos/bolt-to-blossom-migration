@@ -8,6 +8,21 @@ import { posts as postData } from '@/data/instagram';
 
 const posts = postData as PostData[];
 const ACCEPT_DAY = 4;
+const EXPLORE_PHOTOS = [
+  'https://i.postimg.cc/KknxbKsV/1.jpg',
+  'https://i.postimg.cc/hQsnJkn9/10.jpg',
+  'https://i.postimg.cc/xN5QkwQL/11.jpg',
+  'https://i.postimg.cc/m1j4cv4H/12.jpg',
+  'https://i.postimg.cc/kRq9gn0P/2.jpg',
+  'https://i.postimg.cc/1VsP39kh/3.jpg',
+  'https://i.postimg.cc/Lg2R8HcH/4.jpg',
+  'https://i.postimg.cc/tnpy4XKy/5.jpg',
+  'https://i.postimg.cc/YLMkCp52/6.jpg',
+  'https://i.postimg.cc/XB43YVR4/7.jpg',
+  'https://i.postimg.cc/rRMcw8Bp/8.jpg',
+  'https://i.postimg.cc/xN5QkwQk/9.jpg',
+];
+
 
 type Props = {
   onOpenRumor: () => void;
@@ -86,14 +101,23 @@ export default function InstagramExplore({ onOpenRumor }: Props) {
         </ul>
       ) : (
         <div className="pan-y-scroll grid flex-1 grid-cols-3 gap-0.5 overflow-y-auto">
-          {posts.map((post) => (
+          {posts.map((post, index) => {
+            const photoIndex = posts.slice(0, index).filter((item) => item.kind !== 'notice').length;
+            const photo = post.kind === 'notice' ? null : EXPLORE_PHOTOS[photoIndex % EXPLORE_PHOTOS.length];
+            return (
             <button
               key={post.id}
               type="button"
               onClick={() => openPost(post)}
               aria-label={`${post.handle} 게시물`}
               className="relative aspect-square overflow-hidden transition-opacity active:opacity-80"
-              style={{ backgroundImage: `linear-gradient(160deg, ${post.tone[0]}, ${post.tone[1]})` }}
+              style={{
+                backgroundImage: photo
+                  ? `url(${photo})`
+                  : `linear-gradient(160deg, ${post.tone[0]}, ${post.tone[1]})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
             >
               {post.kind === 'notice' && (
                 <span className="absolute inset-0 flex items-center justify-center p-2 text-center text-[10px] leading-[1.4] text-white">
@@ -101,6 +125,14 @@ export default function InstagramExplore({ onOpenRumor }: Props) {
                 </span>
               )}
             </button>
+            );
+          })}
+          {EXPLORE_PHOTOS.slice(posts.filter((item) => item.kind !== 'notice').length).map((photo) => (
+            <span
+              key={photo}
+              className="relative aspect-square overflow-hidden bg-cover bg-center"
+              style={{ backgroundImage: `url(${photo})` }}
+            />
           ))}
         </div>
       )}

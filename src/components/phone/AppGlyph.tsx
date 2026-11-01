@@ -16,14 +16,21 @@ type Props = { app: AppConfig; size?: number };
 export default function AppGlyph({ app, size = 60 }: Props) {
   const imageUrl = app.image ? imageByName[app.image] : undefined;
   if (imageUrl) {
+    // Some source images (calculator) have a white border baked in; zoom past it.
+    const zoom = app.id === 'calc' ? 1.32 : 1;
     return (
-      <img
-        src={imageUrl}
-        alt=""
-        draggable={false}
-        className="shrink-0 rounded-[22%] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+      <span
+        className="block shrink-0 overflow-hidden rounded-[22%] shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
         style={{ width: size, height: size }}
-      />
+      >
+        <img
+          src={imageUrl}
+          alt=""
+          draggable={false}
+          className="h-full w-full object-cover"
+          style={zoom === 1 ? undefined : { transform: `scale(${zoom})` }}
+        />
+      </span>
     );
   }
   const Icon = APP_ICONS[app.icon] ?? FALLBACK_ICON;

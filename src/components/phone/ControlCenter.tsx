@@ -42,9 +42,11 @@ type Props = {
   dnd: boolean;
   onToggleDnd: () => void;
   onCapture: () => void;
+  lowPower: boolean;
+  onToggleLowPower: () => void;
 };
 
-export default function ControlCenter({ progress, dragging, onClose, dnd, onToggleDnd, onCapture }: Props) {
+export default function ControlCenter({ progress, dragging, onClose, dnd, onToggleDnd, onCapture, lowPower, onToggleLowPower }: Props) {
   const [on, setOn] = useState<Record<string, boolean>>(() =>
     Object.fromEntries([...CONNECTIVITY, ...ROUND_TOOLS].map((item) => [item.id, item.on]))
   );
@@ -151,7 +153,7 @@ export default function ControlCenter({ progress, dragging, onClose, dnd, onTogg
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <ToggleButton label="저전력 모드" active={false} onClick={() => undefined} wide>
+          <ToggleButton label="저전력 모드" active={lowPower} onClick={onToggleLowPower} wide>
             <BatteryLow size={20} strokeWidth={1.8} aria-hidden="true" />
           </ToggleButton>
           <ToggleButton label="화면 녹화" active={false} onClick={() => undefined} wide>

@@ -4,6 +4,7 @@ import { device } from '@/data/device';
 import AppIcon from '@/components/phone/AppIcon';
 import HomeWidgets from '@/components/phone/HomeWidgets';
 import type { AppConfig } from '@/lib/types';
+import { useGameState } from '@/state/GameState';
 
 const PAGE_SIZE = 16;
 const TOP_OFFSET = 'calc(env(safe-area-inset-top) + 96px)';
@@ -16,7 +17,7 @@ const gridApps = apps.filter((app) => !dockIds.includes(app.id));
 const gridPages: AppConfig[][] = [];
 for (let i = 0; i < gridApps.length; i += PAGE_SIZE) gridPages.push(gridApps.slice(i, i + PAGE_SIZE));
 const PAGE_COUNT = gridPages.length + 1;
-const badges: Record<string, number> = device.badges;
+const initialBadges: Record<string, number> = device.badges;
 
 type Props = {
   now: Date;
@@ -26,6 +27,7 @@ type Props = {
   onStartEditing: () => void;
   onStopEditing: () => void;
   onOpenApp: (app: AppConfig, rect: DOMRect) => void;
+  onOpenSearch: () => void;
 };
 
 type Swipe = { x: number; y: number; active: boolean; dx: number };
@@ -38,8 +40,21 @@ export default function HomeScreen({
   onStartEditing,
   onStopEditing,
   onOpenApp,
+  onOpenSearch,
 }: Props) {
   const [dragX, setDragX] = useState(0);
+  const { run } = useGameState();
+  // Badges stack per app and clear once the app is opened.
+  const badges: Record<string, number> = {};
+  for (const app of apps) {
+    const seen = run.appSeen[app.id];
+    let count = seen === undefined ? initialBadges[app.id] ?? 0 : 0;
+    for (const notice of run.notices) {
+      if (notice.appId !== app.id || notice.queued || notice.arriveAt > run.t) continue;
+      if (seen === undefined || notice.arriveAt > seen) count += 1;
+    }
+    if (count > 0) badges[app.id] = count;
+  }
   const swipe = useRef<Swipe | null>(null);
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -87,10 +102,6 @@ export default function HomeScreen({
     <div
       className="absolute inset-0 overflow-hidden"
       style={{ touchAction: 'pan-y' }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
       onClick={handleClick}
     >
       <div
@@ -132,15 +143,38 @@ export default function HomeScreen({
         </button>
       ) : null}
 
-      <div className="absolute inset-x-0 bottom-[150px] flex justify-center gap-2">
-        {Array.from({ length: PAGE_COUNT }, (_, index) => (
-          <span
-            key={index}
-            className={`h-1.5 w-1.5 rounded-full transition-colors duration-300 ${
-              index === page ? 'bg-[var(--fg)]' : 'bg-[var(--fg-2)]'
-            }`}
-          />
-        ))}
+      <div className="absolute inset-x-0 bottom-[136px] flex items-center justify-center gap-3">
+        <button
+          type="button"
+          aria-label="이전 페이지"
+          disabled={page === 0}
+          onClick={() => onPageChange(Math.max(page - 1, 0))}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--glass)] text-[16px] text-[var(--fg)] backdrop-blur-[16px] disabled:opacity-0"
+        >
+          ‹
+        </button>
+        <button
+          type="button"
+          onClick={onOpenSearch}
+          className="flex h-8 items-center gap-2 rounded-full bg-[var(--glass)] px-3.5 backdrop-blur-[16px]"
+        >
+          {Array.from({ length: PAGE_COUNT }, (_, index) => (
+            <span
+              key={index}
+              className={`h-1.5 w-1.5 rounded-full ${index === page ? 'bg-[var(--fg)]' : 'bg-[var(--fg-2)]'}`}
+            />
+          ))}
+          <span className="text-[12px] font-medium text-[var(--fg)]">검색</span>
+        </button>
+        <button
+          type="button"
+          aria-label="다음 페이지"
+          disabled={page === PAGE_COUNT - 1}
+          onClick={() => onPageChange(Math.min(page + 1, PAGE_COUNT - 1))}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--glass)] text-[16px] text-[var(--fg)] backdrop-blur-[16px] disabled:opacity-0"
+        >
+          ›
+        </button>
       </div>
 
       <div className="absolute inset-x-3 bottom-7 flex h-[96px] items-center justify-around rounded-[30px] bg-[var(--glass)] shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur-[24px] backdrop-saturate-[180%]">
